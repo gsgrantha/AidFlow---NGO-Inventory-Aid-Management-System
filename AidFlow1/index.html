@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AidFlow — NGO Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080f;--surface:#0e1018;--surfaceB:#141720;--surfaceC:#1a1e2a;--surfaceD:#1f2436;
+  --border:#1e2235;--borderL:#181b28;
+  --accent:#3ddba6;--accentD:#2bc98f;--accentBg:rgba(61,219,166,.09);--accentGlow:rgba(61,219,166,.15);
+  --blue:#5b8fff;--blueBg:rgba(91,143,255,.09);
+  --amber:#f59e0b;--amberBg:rgba(245,158,11,.09);
+  --red:#f87171;--redBg:rgba(248,113,113,.09);
+  --purple:#a78bfa;--purpleBg:rgba(167,139,250,.09);
+  --cyan:#22d3ee;--cyanBg:rgba(34,211,238,.09);
+  --text:#e8eaf6;--muted:#6b7280;--dim:#374151;
+  --font:'Plus Jakarta Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:12px;--r-sm:8px;
+}
+html{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ════════════════════════════════════════
+   AUTH
+════════════════════════════════════════ */
+#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.auth-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(80px)}
+.auth-glow-1{width:500px;height:500px;background:rgba(61,219,166,.04);top:-180px;right:-80px}
+.auth-glow-2{width:360px;height:360px;background:rgba(91,143,255,.04);bottom:-100px;left:-60px}
+.auth-glow-3{width:260px;height:260px;background:rgba(167,139,250,.03);top:40%;left:40%}
+
+.auth-container{width:460px;z-index:1;animation:fadeUp .4s ease both}
+.auth-brand{text-align:center;margin-bottom:28px}
+.auth-brand-icon{width:52px;height:52px;border-radius:14px;background:var(--accentBg);border:1px solid rgba(61,219,166,.25);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px;box-shadow:0 0 24px var(--accentGlow)}
+.auth-brand h1{font-size:26px;font-weight:800;letter-spacing:-1px;color:var(--text)}
+.auth-brand h1 em{color:var(--accent);font-style:normal}
+.auth-brand p{font-size:13px;color:var(--muted);margin-top:4px}
+
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.auth-card-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.auth-card-sub{font-size:12px;color:var(--muted);margin-bottom:22px}
+
+/* form fields */
+.fld{margin-bottom:15px}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.7px}
+.fld input,.fld select{width:100%;padding:10px 13px;background:var(--surfaceB);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font);font-size:13.5px;outline:none;transition:border-color .18s,box-shadow .18s}
+.fld input:focus,.fld select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentBg)}
+.fld input::placeholder{color:var(--dim)}
+.fld select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.avatar-upload{display:flex;align-items:center;gap:12px;margin-top:4px}
+.avatar-preview{width:48px;height:48px;border-radius:50%;background:var(--surfaceB);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;overflow:hidden;flex-shrink:0}
+.avatar-preview img{width:100%;height:100%;object-fit:cover}
+.avatar-input{flex:1;font-size:12px}
+
+/* password strength */
+.pwd-meter{margin-top:5px;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.pwd-meter-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
+
+/* role picker */
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+.rp-card{background:var(--surfaceB);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;transition:all .18s}
+.rp-card:hover{border-color:var(--dim)}
+.rp-card.sel-admin{border-color:var(--accent);background:var(--accentBg)}
+.rp-card.sel-donor{border-color:var(--amber);background:var(--amberBg)}
+.rp-card.sel-volunteer{border-color:var(--blue);background:var(--blueBg)}
+.rp-card.sel-shelter{border-color:var(--purple);background:var(--purpleBg)}
+.rp-card input{display:none}
+.rp-icon{font-size:16px}
+.rp-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.rp-desc{font-size:10px;color:var(--muted);margin-top:1px}
+.sel-admin .rp-name{color:var(--accent)}
+.sel-donor .rp-name{color:var(--amber)}
+.sel-volunteer .rp-name{color:var(--blue)}
+.sel-shelter .rp-name{color:var(--purple)}
+
+.auth-msg{font-size:12.5px;padding:9px 13px;border-radius:var(--r-sm);margin-bottom:14px;display:none}
+.auth-msg.err{background:var(--redBg);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.auth-msg.ok{background:var(--accentBg);color:var(--accent);border:1px solid rgba(61,219,166,.2)}
+
+.auth-switch{text-align:center;margin-top:16px;font-size:12.5px;color:var(--muted)}
+.auth-switch a{color:var(--accent);cursor:pointer;font-weight:600}
+
+/* ════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════ */
+#appShell{display:flex;min-height:100vh}
+#sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+#main{flex:1;overflow-y:auto;padding:28px 32px;background:var(--bg)}
+
+.sb-brand{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-brand-icon{width:30px;height:30px;border-radius:8px;background:var(--accentBg);border:1px solid rgba(61,219,166,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sb-brand-text{font-size:16px;font-weight:800;letter-spacing:-.5px}
+.sb-brand-text em{color:var(--accent);font-style:normal}
+
+.sb-nav{flex:1;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 16px;background:none;border:none;border-left:2px solid transparent;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--muted);text-align:left;transition:all .15s}
+.nav-item:hover{background:var(--surfaceB);color:var(--text)}
+.nav-item.active{background:var(--accentBg);border-left-color:var(--accent);color:var(--accent);font-weight:600}
+.nav-item .ni{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.nav-sep{height:1px;background:var(--border);margin:6px 16px}
+
+.sb-foot{padding:12px 14px;border-top:1px solid var(--border)}
+.sb-user-card{background:var(--surfaceB);border-radius:var(--r-sm);padding:10px 11px;margin-bottom:8px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s}
+.sb-user-card:hover{background:var(--surfaceC)}
+.sb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;overflow:hidden}
+.sb-avatar img{width:100%;height:100%;object-fit:cover}
+.sb-user-info .uname{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.role-pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.rp-admin{background:var(--accentBg);color:var(--accent)}
+.rp-donor{background:var(--amberBg);color:var(--amber)}
+.rp-volunteer{background:var(--blueBg);color:var(--blue)}
+.rp-shelter{background:var(--purpleBg);color:var(--purple)}
+.btn-signout{width:100%;padding:7px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .18s}
+.btn-signout:hover{border-color:var(--red);color:var(--red)}
+
+/* ════════════════════════════════════════
+   PAGE ELEMENTS
+════════════════════════════════════════ */
+.pg-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.pg-head h1{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:2px}
+.pg-head p{font-size:12.5px;color:var(--muted)}
+.pg-actions{display:flex;gap:8px;align-items:center}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 18px;border-radius:var(--r-sm);font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font);border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#07080f}
+.btn-primary:hover{background:var(--accentD)}
+.btn-ghost{background:var(--accentBg);color:var(--accent);border:1px solid rgba(61,219,166,.2)}
+.btn-ghost:hover{background:var(--accentGlow)}
+.btn-sm{padding:5px 12px;font-size:11.5px}
+.btn-danger{background:var(--redBg);color:var(--red);border:1px solid rgba(248,113,113,.18)}
+.btn-danger:hover{background:rgba(248,113,113,.15)}
+.btn-warn{background:var(--amberBg);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.btn-blue{background:var(--blueBg);color:var(--blue);border:1px solid rgba(91,143,255,.2)}
+.btn-icon{padding:6px 10px}
+
+/* kpi cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-accent::before{background:var(--accent)}
+.kpi-blue::before{background:var(--blue)}
+.kpi-amber::before{background:var(--amber)}
+.kpi-red::before{background:var(--red)}
+.kpi-purple::before{background:var(--purple)}
+.kpi-icon{font-size:20px;margin-bottom:10px;display:block}
+.kpi-val{font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;line-height:1}
+.kpi-label{font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:500}
+.kpi-trend{font-size:10.5px;margin-top:6px;font-weight:600}
+
+/* tables */
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.tbl-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.tbl-header h2{font-size:14px;font-weight:700}
+.tbl-header-left{display:flex;align-items:center;gap:10px}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--borderL)}
+th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--borderL);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surfaceB)}
+td{padding:12px 16px;font-size:12.5px;color:var(--muted)}
+td.td-strong{font-weight:600;color:var(--text)}
+td.td-mono{font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+/* badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:700}
+.bg-green{background:var(--accentBg);color:var(--accent)}
+.bg-amber{background:var(--amberBg);color:var(--amber)}
+.bg-red{background:var(--redBg);color:var(--red)}
+.bg-blue{background:var(--blueBg);color:var(--blue)}
+.bg-purple{background:var(--purpleBg);color:var(--purple)}
+.bg-dim{background:var(--surfaceC);color:var(--muted)}
+
+/* form panel */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:18px}
+.form-card h3{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.form-row{display:grid;gap:12px}
+.fr-2{grid-template-columns:1fr 1fr}
+.fr-3{grid-template-columns:1fr 1fr 1fr}
+.fr-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.form-card .fld{margin-bottom:0}
+
+/* filter bar */
+.filter-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.ftab{padding:4px 13px;border-radius:99px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);font-family:var(--font);transition:all .15s}
+.ftab.on{border-color:var(--accent);background:var(--accentBg);color:var(--accent)}
+.ftab:hover:not(.on){border-color:var(--dim);color:var(--text)}
+
+/* mini stats row */
+.mini-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.mini-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px}
+.mini-val{font-size:20px;font-weight:800;font-family:var(--mono)}
+.mini-lbl{font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:500}
+
+/* empty state */
+.empty-state{text-align:center;padding:44px 20px;color:var(--dim)}
+.empty-state .ei{font-size:32px;margin-bottom:10px}
+.empty-state p{font-size:13.5px;font-weight:500;color:var(--muted);margin-bottom:4px}
+.empty-state small{font-size:11.5px}
+
+/* toast */
+#toast{position:fixed;top:18px;right:18px;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:600;z-index:9999;display:none;border:1px solid transparent;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#toast.show{display:block;animation:fadeUp .2s ease}
+#toast.tok{background:var(--accentBg);color:var(--accent);border-color:rgba(61,219,166,.25)}
+#toast.terr{background:var(--redBg);color:var(--red);border-color:rgba(248,113,113,.25)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:500px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:fadeUp .2s ease both}
+.modal-box h2{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* section */
+.section{display:none}
+.section.active{display:block;animation:fadeUp .22s ease}
+
+/* layouts */
+.two-col{display:grid;grid-template-columns:1fr 320px;gap:18px}
+.col-stack{display:flex;flex-direction:column;gap:14px}
+.alert-item{padding:9px 13px;border-radius:var(--r-sm);font-size:12.5px;font-weight:500;border:1px solid transparent;margin-bottom:8px}
+.alert-crit{background:var(--redBg);color:var(--red);border-color:rgba(248,113,113,.2)}
+.alert-low{background:var(--amberBg);color:var(--amber);border-color:rgba(245,158,11,.2)}
+
+/* ════════════════════════════════════════
+   REPORT CHARTS
+════════════════════════════════════════ */
+.report-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.report-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.chart-card h3{font-size:13.5px;font-weight:700;margin-bottom:4px}
+.chart-card .ch-sub{font-size:11px;color:var(--muted);margin-bottom:18px}
+.chart-svg{width:100%;overflow:visible}
+
+/* donut */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.dl-item{display:flex;align-items:center;gap:8px;font-size:11.5px}
+.dl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.dl-label{color:var(--muted);flex:1}
+.dl-val{font-weight:700;color:var(--text);font-family:var(--mono)}
+
+/* progress bars */
+.prog-item{margin-bottom:12px}
+.prog-label-row{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px}
+.prog-label{color:var(--muted)}
+.prog-val{font-weight:700;color:var(--text);font-family:var(--mono)}
+.prog-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* ════════════════════════════════════════
+   USER AVATAR
+════════════════════════════════════════ */
+.u-avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;overflow:hidden}
+.u-avatar img{width:100%;height:100%;object-fit:cover}
+
+/* ════════════════════════════════════════
+   ANIMATIONS
+════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     AUTH
+══════════════════════════════════════ -->
+<div id="authWrap">
+  <div class="auth-glow auth-glow-1"></div>
+  <div class="auth-glow auth-glow-2"></div>
+  <div class="auth-glow auth-glow-3"></div>
+  <div class="auth-container">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">🌍</div>
+      <h1>Aid<em>Flow</em></h1>
+      <p>NGO Inventory &amp; Aid Management System</p>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="pLogin" class="auth-card">
+      <div class="auth-card-title">Welcome back</div>
+      <div class="auth-card-sub">Sign in with your registered credentials</div>
+      <div id="loginMsg" class="auth-msg err"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/></div>
+      <div class="fld"><label>Password</label><input type="password" id="loginPwd" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password"/></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">Sign In →</button>
+      <div class="auth-switch">No account? <a onclick="switchAuth('signup')">Create one free</a></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="pSignup" class="auth-card" style="display:none">
+      <div class="auth-card-title">Create your account</div>
+      <div class="auth-card-sub">Register to get role-based access to AidFlow</div>
+      <div id="signupMsg" class="auth-msg err"></div>
+      <div class="fld-row" style="margin-bottom:14px">
+        <div class="fld" style="margin-bottom:0"><label>Full Name *</label><input type="text" id="suName" placeholder="Your name" autocomplete="name"/></div>
+        <div class="fld" style="margin-bottom:0"><label>Email *</label><input type="email" id="suEmail" placeholder="you@example.com" autocomplete="email"/></div>
+      </div>
+      <div class="fld">
+        <label>Password * <span id="pwdLbl" style="float:right;font-size:10px;text-transform:none;letter-spacing:0;font-weight:600"></span></label>
+        <input type="password" id="suPwd" placeholder="At least 6 characters" oninput="meterPwd(this.value)" autocomplete="new-password"/>
+        <div class="pwd-meter"><div class="pwd-meter-bar" id="pwdBar"></div></div>
+      </div>
+      <div class="fld"><label>Confirm Password *</label><input type="password" id="suPwd2" placeholder="Repeat password" autocomplete="new-password"/></div>
+      <div class="fld">
+        <label>Profile Picture <span style="font-weight:400;text-transform:none">(optional)</span></label>
+        <div class="avatar-upload">
+          <div class="avatar-preview" id="signupAvatarPreview"></div>
+          <input type="file" id="suAvatarFile" accept="image/*" class="avatar-input" onchange="previewAvatar('signupAvatarPreview', this.files[0])"/>
+        </div>
+      </div>
+      <div class="fld">
+        <label>Your Role *</label>
+        <div class="role-picker">
+          <label class="rp-card" id="rpc-admin" onclick="pickRole('admin')"><input type="radio" name="suRole" value="admin"/><div class="rp-icon">🛡️</div><div class="rp-name">Admin</div><div class="rp-desc">Full system control</div></label>
+          <label class="rp-card" id="rpc-donor" onclick="pickRole('donor')"><input type="radio" name="suRole" value="donor"/><div class="rp-icon">🤲</div><div class="rp-name">Donor</div><div class="rp-desc">Submit donations</div></label>
+          <label class="rp-card" id="rpc-volunteer" onclick="pickRole('volunteer')"><input type="radio" name="suRole" value="volunteer"/><div class="rp-icon">🙋</div><div class="rp-name">Volunteer</div><div class="rp-desc">Manage deliveries</div></label>
+          <label class="rp-card" id="rpc-shelter" onclick="pickRole('shelter')"><input type="radio" name="suRole" value="shelter"/><div class="rp-icon">🏠</div><div class="rp-name">Shelter</div><div class="rp-desc">Request aid</div></label>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doSignup()">Create Account →</button>
+      <div class="auth-switch">Already registered? <a onclick="switchAuth('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════ -->
+<div id="appShell" style="display:none">
+  <aside id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">🌍</div>
+      <div class="sb-brand-text">Aid<em>Flow</em></div>
+    </div>
+    <nav class="sb-nav" id="sideNav"></nav>
+    <div class="sb-foot">
+      <div class="sb-user-card" onclick="openProfileEditor()" title="Click to edit profile">
+        <div class="sb-avatar" id="sbAvatar"></div>
+        <div class="sb-user-info">
+          <div class="uname" id="sbName"></div>
+          <div class="role-pill" id="sbRole"></div>
+        </div>
+      </div>
+      <button class="btn-signout" onclick="doLogout()">↩ Sign Out</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <!-- DASHBOARD -->
+    <div class="section" id="sec-dashboard">
+      <div class="pg-head"><div><h1 id="dashTitle">Dashboard</h1><p id="dashSub">Overview of all AidFlow activity</p></div></div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+      <div class="two-col">
+        <div class="tbl-card">
+          <div class="tbl-header"><h2>Recent Donations</h2><button class="btn btn-ghost btn-sm" onclick="goTo('donations')">View all →</button></div>
+          <div id="dashDonations"></div>
+        </div>
+        <div class="col-stack" id="dashSide"></div>
+      </div>
+    </div>
+
+    <!-- DONATIONS -->
+    <div class="section" id="sec-donations">
+      <div class="pg-head">
+        <div><h1>🤲 Donations</h1><p>Donor submissions → Admin verification → Inventory update</p></div>
+        <div class="pg-actions" id="donActions"></div>
+      </div>
+      <div id="panelDon" style="display:none">
+        <div class="form-card">
+          <h3>➕ New Donation</h3>
+          <div class="form-row fr-3" style="margin-bottom:12px">
+            <div class="fld"><label>Donor Name *</label><input id="dDonor" placeholder="Full name"/></div>
+            <div class="fld"><label>Item Name *</label><input id="dItem" placeholder="e.g. Rice"/></div>
+            <div class="fld"><label>Quantity *</label><input id="dQty" type="number" min="1" placeholder="0"/></div>
+          </div>
+          <div class="form-row fr-2" style="margin-bottom:16px">
+            <div class="fld"><label>Category</label><select id="dCat"><option>Food</option><option>Medicine</option><option>Clothes</option><option>Relief</option></select></div>
+            <div class="fld"><label>Date</label><input id="dDate" type="date"/></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="submitDonation()">Submit Donation</button>
+            <button class="btn btn-ghost" onclick="togglePanel('panelDon')">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="mini-row" id="donStats"></div>
+      <div class="tbl-card"><div id="donTable"></div></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="section" id="sec-inventory">
+      <div class="pg-head">
+        <div><h1>📦 Inventory</h1><p>Stock control — real-time quantity tracking</p></div>
+        <div class="pg-actions" id="invActions"></div>
+      </div>
+      <div id="panelInv" style="display:none">
+        <div class="form-card">
+          <h3>➕ Add Stock Item</h3>
+          <div class="form-row fr-4" style="margin-bottom:16px">
+            <div class="fld"><label>Item Name *</label><input id="iItem" placeholder="e.g. Rice"/></div>
+            <div class="fld"><label>Category</label><select id="iCat"><option>Food</option><option>Medicine</option><option>Clothes</option><option>Relief</option></select></div>
+            <div class="fld"><label>Quantity *</label><input id="iQty" type="number" min="0" placeholder="0"/></div>
+            <div class="fld"><label>Expiry Date</label><input id="iExp" type="date"/></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="submitInventory()">Add to Inventory</button>
+            <button class="btn btn-ghost" onclick="togglePanel('panelInv')">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="mini-row" id="invStats"></div>
+      <div class="filter-strip" id="invFilters"></div>
+      <div class="tbl-card"><div id="invTable"></div></div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="section" id="sec-requests">
+      <div class="pg-head">
+        <div><h1>📋 Aid Requests</h1><p>Shelter request → Admin approval → Inventory check</p></div>
+        <div class="pg-actions" id="reqActions"></div>
+      </div>
+      <div id="panelReq" style="display:none">
+        <div class="form-card">
+          <h3>➕ New Aid Request</h3>
+          <div class="form-row fr-4" style="margin-bottom:16px">
+            <div class="fld"><label>Shelter Name *</label><input id="rShelter" placeholder="Organization name"/></div>
+            <div class="fld"><label>Item Required *</label><input id="rItem" placeholder="e.g. Rice"/></div>
+            <div class="fld"><label>Quantity *</label><input id="rQty" type="number" min="1" placeholder="0"/></div>
+            <div class="fld"><label>Priority</label><select id="rPri"><option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="submitRequest()">Submit Request</button>
+            <button class="btn btn-ghost" onclick="togglePanel('panelReq')">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="mini-row" id="reqStats"></div>
+      <div class="tbl-card"><div id="reqTable"></div></div>
+    </div>
+
+    <!-- DISTRIBUTION -->
+    <div class="section" id="sec-distribution">
+      <div class="pg-head">
+        <div><h1>🚚 Distribution</h1><p>Volunteer delivery tracking → Inventory deduction</p></div>
+        <div class="pg-actions" id="distActions"></div>
+      </div>
+      <div id="panelDist" style="display:none">
+        <div class="form-card">
+          <h3>➕ New Distribution Record</h3>
+          <div class="form-row fr-3" style="margin-bottom:12px">
+            <div class="fld"><label>Receiver Name *</label><input id="distRecv" placeholder="Shelter / NGO"/></div>
+            <div class="fld"><label>Item Name *</label><input id="distItem" placeholder="e.g. Rice"/></div>
+            <div class="fld"><label>Quantity *</label><input id="distQty" type="number" min="1" placeholder="0"/></div>
+          </div>
+          <div class="form-row fr-3" style="margin-bottom:16px">
+            <div class="fld"><label>Category</label><select id="distCat"><option>Food</option><option>Medicine</option><option>Clothes</option><option>Relief</option></select></div>
+            <div class="fld"><label>Volunteer Name *</label><input id="distVol" placeholder="Full name"/></div>
+            <div class="fld"><label>Date</label><input id="distDate" type="date"/></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="submitDistribution()">Add Record</button>
+            <button class="btn btn-ghost" onclick="togglePanel('panelDist')">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="mini-row" id="distStats"></div>
+      <div class="tbl-card"><div id="distTable"></div></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="section" id="sec-reports">
+      <div class="pg-head"><div><h1>📊 Analytics &amp; Reports</h1><p>Visual insights across all operations</p></div></div>
+      <div class="kpi-grid" id="repKpi"></div>
+
+      <!-- Row 1: Donation by Category (donut) + Donation Trend -->
+      <div class="report-grid-2">
+        <div class="chart-card">
+          <h3>Donations by Category</h3>
+          <div class="ch-sub">Item quantity breakdown</div>
+          <div class="donut-wrap" id="donutWrap">
+            <svg id="donutSvg" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Donation Status Split</h3>
+          <div class="ch-sub">Approval pipeline overview</div>
+          <div id="donStatusBars"></div>
+        </div>
+      </div>
+
+      <!-- Row 2: Inventory health + Distribution pipeline -->
+      <div class="report-grid-2">
+        <div class="chart-card">
+          <h3>Inventory Health</h3>
+          <div class="ch-sub">Stock level status distribution</div>
+          <div id="invHealthBars"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribution Pipeline</h3>
+          <div class="ch-sub">Delivery status breakdown</div>
+          <div id="distPipeline"></div>
+        </div>
+      </div>
+
+      <!-- Row 3: Top items donated -->
+      <div class="chart-card" style="margin-bottom:18px">
+        <h3>Top Donated Items</h3>
+        <div class="ch-sub">Most contributed items by quantity (approved donations)</div>
+        <div id="topItemsChart"></div>
+      </div>
+
+      <!-- Row 4: Request priority + recent activity -->
+      <div class="report-grid-2">
+        <div class="chart-card">
+          <h3>Request Priority Distribution</h3>
+          <div class="ch-sub">Urgency breakdown of all aid requests</div>
+          <div id="reqPriorityChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>System Summary</h3>
+          <div class="ch-sub">Key operational metrics</div>
+          <div id="summaryStats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="sec-users">
+      <div class="pg-head"><div><h1>👥 User Management</h1><p>All registered accounts — Admin controlled</p></div></div>
+      <div class="tbl-card"><div id="usersTable"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h2 id="modalTitle">Edit Record</h2>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalSaveBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE EDIT MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-box">
+    <h2>👤 Edit Profile</h2>
+    <div id="profileModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('profileModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" id="profileSaveBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATABASE LAYER — talks to api.php → MySQL
+//  (this replaces the old localStorage load/save)
+// ═══════════════════════════════════════════════
+async function apiCall(resource, action, payload={}){
+  // Each resource has its own small PHP file: api/donations.php, api/users.php, etc.
+  const res = await fetch('api/'+resource+'.php', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    credentials:'same-origin',
+    body: JSON.stringify({action, ...payload})
+  });
+  return res.json(); // {success, data, message}
+}
+// api(): same as apiCall but toasts + throws on failure (used by all CRUD calls)
+async function api(resource, action, payload={}){
+  const json = await apiCall(resource, action, payload);
+  if(!json.success){ toast(json.message || 'Something went wrong', false); throw new Error(json.message || 'API error'); }
+  return json.data;
+}
+
+// ═══════════════════════════════════════════════
+//  STATE — starts completely EMPTY.
+//  Nothing is pre-filled; every array below only
+//  gets data once it's fetched from MySQL, and
+//  MySQL only has rows once you submit them via
+//  the forms in this app.
+// ═══════════════════════════════════════════════
+let currentUser=null;
+let selectedRole=null;
+let invFilter='All';
+
+let donations=[], inventory=[], requests=[], dist=[], users=[];
+
+// ═══════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════
+const NAV=[
+  {id:'dashboard',   label:'Dashboard',    icon:'▦',  roles:['admin','donor','volunteer','shelter']},
+  {id:'donations',   label:'Donations',    icon:'🤲', roles:['admin','donor']},
+  {id:'inventory',   label:'Inventory',    icon:'📦', roles:['admin']},
+  {id:'requests',    label:'Requests',     icon:'📋', roles:['admin','shelter']},
+  {id:'distribution',label:'Distribution', icon:'🚚', roles:['admin','volunteer']},
+  {id:'reports',     label:'Reports',      icon:'📊', roles:['admin']},
+  {id:'users',       label:'Users',        icon:'👥', roles:['admin']},
+];
+
+// ═══════════════════════════════════════════════
+//  AUTH HELPERS
+// ═══════════════════════════════════════════════
+function switchAuth(m){
+  document.getElementById('pLogin').style.display=m==='login'?'block':'none';
+  document.getElementById('pSignup').style.display=m==='signup'?'block':'none';
+  clearAuthMsgs();
+}
+function clearAuthMsgs(){
+  ['loginMsg','signupMsg'].forEach(id=>{const e=document.getElementById(id);e.style.display='none';e.textContent='';});
+}
+function showMsg(id,type,msg){
+  const e=document.getElementById(id);
+  e.className='auth-msg '+type;e.textContent=msg;e.style.display='block';
+}
+function pickRole(r){
+  selectedRole=r;
+  ['admin','donor','volunteer','shelter'].forEach(x=>{
+    document.getElementById('rpc-'+x).className='rp-card'+(x===r?' sel-'+x:'');
+  });
+}
+function meterPwd(v){
+  const bar=document.getElementById('pwdBar'),lbl=document.getElementById('pwdLbl');
+  if(!v){bar.style.width='0';lbl.textContent='';return;}
+  let s=0;
+  if(v.length>=6)s++;if(v.length>=10)s++;
+  if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const lvl=[{w:'20%',c:'var(--red)',t:'Weak'},{w:'40%',c:'var(--red)',t:'Weak'},{w:'60%',c:'var(--amber)',t:'Fair'},{w:'80%',c:'var(--blue)',t:'Good'},{w:'100%',c:'var(--accent)',t:'Strong'}];
+  const l=lvl[Math.min(s,4)];
+  bar.style.width=l.w;bar.style.background=l.c;lbl.textContent=l.t;lbl.style.color=l.c;
+}
+// NOTE: passwords are no longer hashed in the browser (that was insecure).
+// They're sent over POST to api.php, which hashes them server-side with
+// PHP's password_hash()/password_verify() — this is standard secure practice.
+
+// ═══════════════════════════════════════════════
+//  IMAGE UTILS
+// ═══════════════════════════════════════════════
+function previewAvatar(containerId, file){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    container.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+function resizeImage(file, maxW=200, maxH=200, quality=0.8){
+  return new Promise((resolve, reject) => {
+    if(!file) return resolve(null);
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if(w > maxW || h > maxH){
+        const ratio = Math.min(maxW/w, maxH/h);
+        w *= ratio; h *= ratio;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  SIGNUP
+// ═══════════════════════════════════════════════
+async function doSignup(){
+  const name=document.getElementById('suName').value.trim();
+  const email=document.getElementById('suEmail').value.trim().toLowerCase();
+  const pwd=document.getElementById('suPwd').value;
+  const pwd2=document.getElementById('suPwd2').value;
+  const avatarFile = document.getElementById('suAvatarFile').files[0];
+  if(!name)return showMsg('signupMsg','err','Full name is required.');
+  if(!email||!email.includes('@'))return showMsg('signupMsg','err','Enter a valid email address.');
+  if(pwd.length<6)return showMsg('signupMsg','err','Password must be at least 6 characters.');
+  if(pwd!==pwd2)return showMsg('signupMsg','err','Passwords do not match.');
+  if(!selectedRole)return showMsg('signupMsg','err','Please select your role.');
+
+  let avatarData = null;
+  if(avatarFile){
+    try {
+      avatarData = await resizeImage(avatarFile);
+    } catch(e){
+      toast('Failed to process image. Continue without picture.', false);
+    }
+  }
+
+  // INSERT INTO users (...) VALUES (...) — runs on the server in api.php
+  const res = await apiCall('auth','signup',{name,email,password:pwd,role:selectedRole,avatarData:avatarData||''});
+  if(!res.success) return showMsg('signupMsg','err',res.message||'This email is already registered.');
+  showMsg('signupMsg','ok','✅ Account created! Redirecting to login…');
+  setTimeout(()=>{switchAuth('login');document.getElementById('loginEmail').value=email;toast('Account created — sign in now!');},1400);
+}
+
+// ═══════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pwd=document.getElementById('loginPwd').value;
+  if(!email||!pwd){showMsg('loginMsg','err','Please fill in both fields.');return;}
+  // SELECT * FROM users WHERE email=? then password_verify() — done in api.php
+  const res=await apiCall('auth','login',{email,password:pwd});
+  if(!res.success){showMsg('loginMsg','err',res.message||'Incorrect email or password.');return;}
+  launchApp(res.data);
+}
+async function doLogout(){
+  await apiCall('auth','logout'); // destroys the PHP session server-side
+  currentUser=null;
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('authWrap').style.display='flex';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPwd').value='';
+  clearAuthMsgs();
+}
+function launchApp(user){
+  currentUser=user;
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  buildSidebar();goTo('dashboard');
+}
+// restore session (checks the PHP session cookie against the server)
+(async function(){
+  const res=await apiCall('auth','session');
+  if(res.success && res.data) launchApp(res.data);
+})();
+
+// ═══════════════════════════════════════════════
+//  SIDEBAR & AVATAR RENDERING
+// ═══════════════════════════════════════════════
+function setAvatar(container, user){
+  const avatarEl = typeof container === 'string' ? document.getElementById(container) : container;
+  avatarEl.innerHTML = '';
+  if(user.avatarData){
+    const img = document.createElement('img');
+    img.src = user.avatarData;
+    avatarEl.appendChild(img);
+  } else {
+    avatarEl.style.background = roleBgColor(user.role);
+    avatarEl.style.color = roleTextColor(user.role);
+    avatarEl.textContent = user.name.charAt(0).toUpperCase();
+  }
+}
+
+function roleBgColor(role){
+  const rc={admin:'var(--accentBg)',donor:'var(--amberBg)',volunteer:'var(--blueBg)',shelter:'var(--purpleBg)'};
+  return rc[role] || 'var(--surfaceB)';
+}
+function roleTextColor(role){
+  const tc={admin:'var(--accent)',donor:'var(--amber)',volunteer:'var(--blue)',shelter:'var(--purple)'};
+  return tc[role] || 'var(--text)';
+}
+
+function buildSidebar(){
+  document.getElementById('sbName').textContent=currentUser.name;
+  const rp=document.getElementById('sbRole');
+  rp.textContent=currentUser.role; rp.className='role-pill rp-'+currentUser.role;
+  setAvatar('sbAvatar', currentUser);
+  const nav=document.getElementById('sideNav'); nav.innerHTML='';
+  NAV.filter(n=>n.roles.includes(currentUser.role)).forEach(n=>{
+    const b=document.createElement('button');
+    b.className='nav-item'; b.id='ni-'+n.id;
+    b.innerHTML=`<span class="ni">${n.icon}</span>${n.label}`;
+    b.onclick=()=>goTo(n.id); nav.appendChild(b);
+  });
+}
+
+function goTo(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const sec=document.getElementById('sec-'+id);if(sec)sec.classList.add('active');
+  const nb=document.getElementById('ni-'+id);if(nb)nb.classList.add('active');
+  render(id);
+}
+async function render(id){
+  const fn={dashboard:renderDash,donations:renderDonations,inventory:renderInventory,
+    requests:renderRequests,distribution:renderDist,reports:renderReports,users:renderUsers}[id];
+  if(fn) await fn();
+}
+
+// ═══════════════════════════════════════════════
+//  PROFILE EDITOR
+// ═══════════════════════════════════════════════
+function openProfileEditor(){
+  const modal = document.getElementById('profileModal');
+  const body = document.getElementById('profileModalBody');
+  body.innerHTML = `
+    <div class="fld"><label>Full Name</label><input id="profName" value="${currentUser.name}"/></div>
+    <div class="fld">
+      <label>Profile Picture</label>
+      <div class="avatar-upload">
+        <div class="avatar-preview" id="profAvatarPreview">${currentUser.avatarData ? `<img src="${currentUser.avatarData}"/>` : ''}</div>
+        <input type="file" id="profAvatarFile" accept="image/*" onchange="previewAvatar('profAvatarPreview', this.files[0])"/>
+      </div>
+    </div>
+  `;
+  document.getElementById('profileSaveBtn').onclick = async () => {
+    const newName = document.getElementById('profName').value.trim();
+    if(!newName) { toast('Name cannot be empty', false); return; }
+    const file = document.getElementById('profAvatarFile').files[0];
+    let avatarData = currentUser.avatarData;
+    if(file){
+      try {
+        avatarData = await resizeImage(file);
+      } catch(e){
+        toast('Image processing failed.', false);
+        return;
+      }
+    }
+    // UPDATE users SET name=?, avatar_data=? WHERE id=? — runs in api.php
+    await api('users','updateProfile',{name:newName, avatarData: avatarData||''});
+    currentUser.name = newName;
+    currentUser.avatarData = avatarData || '';
+    // Refresh UI
+    buildSidebar();
+    if(document.getElementById('sec-dashboard').classList.contains('active')) await renderDash();
+    if(document.getElementById('sec-users').classList.contains('active')) await renderUsers();
+    modal.classList.remove('open');
+    toast('Profile updated!');
+  };
+  modal.classList.add('open');
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='show '+(ok?'tok':'terr');
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.className='',3200);
+}
+function togglePanel(id){const p=document.getElementById(id);p.style.display=p.style.display==='none'?'block':'none';}
+function uid(){return Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();}
+function today(){return new Date().toISOString().split('T')[0];}
+function isAdmin(){return currentUser&&currentUser.role==='admin';}
+
+function statusBadge(s){
+  const m={Approved:'bg-green',Pending:'bg-amber',Rejected:'bg-red','In Transit':'bg-blue',Delivered:'bg-green',OK:'bg-green',Low:'bg-amber',Critical:'bg-red'};
+  return `<span class="badge ${m[s]||'bg-dim'}">${s}</span>`;
+}
+function prioBadge(p){
+  const m={Critical:'bg-red',High:'bg-amber',Medium:'bg-blue',Low:'bg-green'};
+  return `<span class="badge ${m[p]||'bg-blue'}">${p}</span>`;
+}
+function catBadge(c){const m={Food:'bg-green',Medicine:'bg-blue',Clothes:'bg-amber',Relief:'bg-purple'};return `<span class="badge ${m[c]||'bg-dim'}">${c}</span>`;}
+function emptyState(msg,hint){return `<div class="empty-state"><div class="ei">📭</div><p>${msg}</p><small>${hint||'Use the form above to get started.'}</small></div>`;}
+function miniStat(v,l,c){return `<div class="mini-card"><div class="mini-val" style="color:${c}">${v}</div><div class="mini-lbl">${l}</div></div>`;}
+function calcStatus(q){return q<=5?'Critical':q<=15?'Low':'OK';}
+function recalc(item){item.status=calcStatus(item.quantity);}
+
+// ═══════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════
+function openModal(title,bodyHtml,saveFn){
+  document.getElementById('modalTitle').innerHTML=title;
+  document.getElementById('modalBody').innerHTML=bodyHtml;
+  document.getElementById('modalSaveBtn').onclick=saveFn;
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal(){document.getElementById('editModal').classList.remove('open');}
+
+// ═══════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════
+async function renderDash(){
+  document.getElementById('dashTitle').textContent='Welcome, '+currentUser.name+' 👋';
+  document.getElementById('dashSub').textContent='Real-time overview — '+new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // SELECT * FROM donations ORDER BY id
+  donations = await api('donations','list');
+  if(isAdmin()){
+    // SELECT * FROM inventory / requests ORDER BY id
+    inventory = await api('inventory','list');
+    requests  = await api('requests','list');
+    document.getElementById('kpiGrid').innerHTML=[
+      {label:'Total Donations',val:donations.length,icon:'🤲',cls:'kpi-accent',c:'var(--accent)'},
+      {label:'Inventory Items',val:inventory.length,icon:'📦',cls:'kpi-blue',c:'var(--blue)'},
+      {label:'Pending Requests',val:requests.filter(r=>r.status==='Pending').length,icon:'⏳',cls:'kpi-amber',c:'var(--amber)'},
+      {label:'Low / Critical Stock',val:inventory.filter(i=>i.status!=='OK').length,icon:'🚨',cls:'kpi-red',c:'var(--red)'},
+    ].map(k=>`<div class="kpi-card ${k.cls}"><span class="kpi-icon">${k.icon}</span><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-label">${k.label}</div></div>`).join('');
+  } else {document.getElementById('kpiGrid').innerHTML='';}
+
+  const recent=donations.slice().reverse().slice(0,6);
+  document.getElementById('dashDonations').innerHTML=recent.length?`
+    <table><thead><tr><th>ID</th><th>Donor</th><th>Item</th><th>Qty</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody>${recent.map(d=>`<tr><td class="td-mono">${d.id}</td><td class="td-strong">${d.donorName}</td><td>${d.itemName}</td><td><b>${d.quantity}</b></td><td>${d.date}</td><td>${statusBadge(d.status)}</td></tr>`).join('')}</tbody></table>`
+    :emptyState('No donations yet','Donations will appear here once submitted.');
+
+  if(isAdmin()){
+    const alerts=inventory.filter(i=>i.status!=='OK');
+    document.getElementById('dashSide').innerHTML=`
+      <div class="tbl-card" style="padding:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">🚨 Stock Alerts</div>
+        ${alerts.length?alerts.map(a=>`<div class="alert-item ${a.status==='Critical'?'alert-crit':'alert-low'}"><b>${a.itemName}</b> — ${a.status} (${a.quantity} units)</div>`).join('')
+          :'<div style="color:var(--dim);font-size:12.5px;padding:8px 0">✅ All stock levels OK</div>'}
+      </div>
+      <div class="tbl-card" style="padding:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">⚡ Quick Actions</div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:left;margin-bottom:6px" onclick="goTo('donations')">+ Add Donation</button>
+        <button class="btn btn-blue" style="width:100%;justify-content:left;margin-bottom:6px;font-size:12.5px" onclick="goTo('inventory')">+ Update Inventory</button>
+        <button class="btn btn-warn" style="width:100%;justify-content:left;font-size:12.5px" onclick="goTo('requests')">+ Review Requests</button>
+      </div>`;
+  } else {document.getElementById('dashSide').innerHTML='';}
+}
+
+// ═══════════════════════════════════════════════
+//  DONATIONS
+// ═══════════════════════════════════════════════
+async function submitDonation(){
+  const donor=document.getElementById('dDonor').value.trim();
+  const item=document.getElementById('dItem').value.trim();
+  const qty=parseInt(document.getElementById('dQty').value)||0;
+  const cat=document.getElementById('dCat').value;
+  const date=document.getElementById('dDate').value||today();
+  if(!donor||!item||qty<1){toast('Please fill all required fields.',false);return;}
+  // INSERT INTO donations (donor_name, item_name, category, quantity, donation_date, status) VALUES (...)
+  await api('donations','add',{donorName:donor,itemName:item,category:cat,quantity:qty,date});
+  ['dDonor','dItem','dQty'].forEach(id=>document.getElementById(id).value='');
+  togglePanel('panelDon');toast('✅ Donation submitted!');await renderDonations();
+}
+async function approveDonation(id){
+  // api.php runs this as ONE TRANSACTION:
+  //   UPDATE donations SET status='Approved' WHERE id=?
+  //   UPDATE inventory SET quantity=quantity+? ...  (or INSERT if new item)
+  await api('donations','approve',{id});
+  toast('✅ Approved & inventory updated!');await renderDonations();
+}
+async function rejectDonation(id){
+  await api('donations','reject',{id}); // UPDATE donations SET status='Rejected' WHERE id=?
+  toast('Donation rejected.');await renderDonations();
+}
+async function deleteDonation(id){
+  if(!confirm('Delete this donation record?'))return;
+  await api('donations','delete',{id}); // DELETE FROM donations WHERE id=?
+  toast('Donation deleted.');await renderDonations();
+}
+function editDonation(id){
+  const d=donations.find(x=>x.id===id);if(!d)return;
+  openModal('✏️ Edit Donation',`
+    <div class="form-row fr-2" style="margin-bottom:12px">
+      <div class="fld"><label>Donor Name</label><input id="ed_donor" value="${d.donorName}"/></div>
+      <div class="fld"><label>Item Name</label><input id="ed_item" value="${d.itemName}"/></div>
+    </div>
+    <div class="form-row fr-3">
+      <div class="fld"><label>Quantity</label><input id="ed_qty" type="number" value="${d.quantity}"/></div>
+      <div class="fld"><label>Category</label><select id="ed_cat">${['Food','Medicine','Clothes','Relief'].map(c=>`<option${c===d.category?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="fld"><label>Date</label><input id="ed_date" type="date" value="${d.date}"/></div>
+    </div>`,
+  async ()=>{
+    const payload={id,
+      donorName:document.getElementById('ed_donor').value.trim()||d.donorName,
+      itemName:document.getElementById('ed_item').value.trim()||d.itemName,
+      quantity:parseInt(document.getElementById('ed_qty').value)||d.quantity,
+      category:document.getElementById('ed_cat').value,
+      date:document.getElementById('ed_date').value||d.date,
+    };
+    await api('donations','update',payload); // UPDATE donations SET ... WHERE id=?
+    closeModal();toast('Donation updated.');await renderDonations();
+  });
+}
+async function renderDonations(){
+  donations = await api('donations','list'); // SELECT * FROM donations ORDER BY id
+  const canAdd=isAdmin()||currentUser.role==='donor';
+  document.getElementById('donActions').innerHTML=canAdd?`<button class="btn btn-ghost" onclick="togglePanel('panelDon')">+ New Donation</button>`:'';
+  const tot=donations.length,app=donations.filter(d=>d.status==='Approved').length,
+        pen=donations.filter(d=>d.status==='Pending').length,rej=donations.filter(d=>d.status==='Rejected').length;
+  document.getElementById('donStats').innerHTML=
+    miniStat(tot,'Total','var(--text)')+miniStat(app,'Approved','var(--accent)')+
+    miniStat(pen,'Pending','var(--amber)')+miniStat(rej,'Rejected','var(--red)');
+  const admin=isAdmin();
+  document.getElementById('donTable').innerHTML=donations.length?`
+    <table><thead><tr><th>ID</th><th>Donor</th><th>Item</th><th>Category</th><th>Qty</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${donations.slice().reverse().map(d=>`<tr>
+      <td class="td-mono">${d.id}</td><td class="td-strong">${d.donorName}</td>
+      <td>${d.itemName}</td><td>${catBadge(d.category)}</td>
+      <td><b>${d.quantity}</b></td><td>${d.date}</td><td>${statusBadge(d.status)}</td>
+      <td style="white-space:nowrap">
+        ${admin&&d.status==='Pending'?`<button class="btn btn-sm bg-green" style="background:var(--accentBg);color:var(--accent);border:1px solid rgba(61,219,166,.2)" onclick="approveDonation('${d.id}')">✓ Approve</button> <button class="btn btn-sm btn-danger" onclick="rejectDonation('${d.id}')">✕ Reject</button> `:''}
+        ${admin?`<button class="btn btn-sm btn-blue btn-icon" title="Edit" onclick="editDonation('${d.id}')">✎</button> <button class="btn btn-sm btn-danger btn-icon" title="Delete" onclick="deleteDonation('${d.id}')">🗑</button>`:''}
+      </td>
+    </tr>`).join('')}</tbody></table>`
+    :emptyState('No donations recorded','Click "+ New Donation" to add the first entry.');
+}
+
+// ═══════════════════════════════════════════════
+//  INVENTORY
+// ═══════════════════════════════════════════════
+async function submitInventory(){
+  const item=document.getElementById('iItem').value.trim();
+  const cat=document.getElementById('iCat').value;
+  const qty=parseInt(document.getElementById('iQty').value)||0;
+  const exp=document.getElementById('iExp').value;
+  if(!item||qty<0){toast('Item name and quantity required.',false);return;}
+  // INSERT INTO inventory (item_name, category, quantity, expiry_date, status) VALUES (...)
+  await api('inventory','add',{itemName:item,category:cat,quantity:qty,expiryDate:exp});
+  ['iItem','iQty','iExp'].forEach(id=>document.getElementById(id).value='');
+  togglePanel('panelInv');toast('✅ Item added!');await renderInventory();
+}
+function editInventory(id){
+  const item=inventory.find(x=>x.id===id);if(!item)return;
+  openModal('✏️ Edit Inventory Item',`
+    <div class="form-row fr-2" style="margin-bottom:12px">
+      <div class="fld"><label>Item Name</label><input id="ei_name" value="${item.itemName}"/></div>
+      <div class="fld"><label>Category</label><select id="ei_cat">${['Food','Medicine','Clothes','Relief'].map(c=>`<option${c===item.category?' selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row fr-2">
+      <div class="fld"><label>Quantity</label><input id="ei_qty" type="number" value="${item.quantity}"/></div>
+      <div class="fld"><label>Expiry Date</label><input id="ei_exp" type="date" value="${item.expiryDate}"/></div>
+    </div>`,
+  async ()=>{
+    const payload={id,
+      itemName:document.getElementById('ei_name').value.trim()||item.itemName,
+      category:document.getElementById('ei_cat').value,
+      quantity:parseInt(document.getElementById('ei_qty').value)||0,
+      expiryDate:document.getElementById('ei_exp').value,
+    };
+    await api('inventory','update',payload); // UPDATE inventory SET ... WHERE id=?
+    closeModal();toast('Inventory updated.');await renderInventory();
+  });
+}
+async function removeInventory(id){
+  if(!confirm('Remove this inventory item?'))return;
+  await api('inventory','delete',{id}); // DELETE FROM inventory WHERE id=?
+  toast('Item removed.');await renderInventory();
+}
+async function renderInventory(){
+  inventory = await api('inventory','list'); // SELECT * FROM inventory ORDER BY id
+  const admin=isAdmin();
+  document.getElementById('invActions').innerHTML=admin?`<button class="btn btn-ghost" onclick="togglePanel('panelInv')">+ Add Stock</button>`:'';
+  const ok=inventory.filter(i=>i.status==='OK').length,low=inventory.filter(i=>i.status==='Low').length,crit=inventory.filter(i=>i.status==='Critical').length;
+  document.getElementById('invStats').innerHTML=
+    miniStat(inventory.length,'Total Items','var(--text)')+miniStat(ok,'OK','var(--accent)')+
+    miniStat(low,'Low Stock','var(--amber)')+miniStat(crit,'Critical','var(--red)');
+  const cats=['All','Food','Medicine','Clothes','Relief','Low','Critical'];
+  document.getElementById('invFilters').innerHTML=cats.map(c=>`<button class="ftab${invFilter===c?' on':''}" onclick="invFilter='${c}';renderInventory()">${c}</button>`).join('');
+  const list=invFilter==='All'?inventory:inventory.filter(i=>i.category===invFilter||i.status===invFilter);
+  document.getElementById('invTable').innerHTML=list.length?`
+    <table><thead><tr><th>ID</th><th>Item Name</th><th>Category</th><th>Quantity</th><th>Expiry</th><th>Status</th>${admin?'<th>Actions</th>':''}</tr></thead>
+    <tbody>${list.map(i=>`<tr>
+      <td class="td-mono">${i.id}</td><td class="td-strong">${i.itemName}</td>
+      <td>${catBadge(i.category)}</td>
+      <td style="font-weight:700;color:${i.quantity<=10?'var(--red)':'var(--text)'}">${i.quantity}</td>
+      <td style="font-size:11.5px">${i.expiryDate||'—'}</td><td>${statusBadge(i.status)}</td>
+      ${admin?`<td style="white-space:nowrap"><button class="btn btn-sm btn-blue btn-icon" onclick="editInventory('${i.id}')">✎</button> <button class="btn btn-sm btn-danger btn-icon" onclick="removeInventory('${i.id}')">🗑</button></td>`:''}
+    </tr>`).join('')}</tbody></table>`
+    :emptyState('No inventory items','Add stock using the "+ Add Stock" button.');
+}
+
+// ═══════════════════════════════════════════════
+//  REQUESTS
+// ═══════════════════════════════════════════════
+async function submitRequest(){
+  const shelter=document.getElementById('rShelter').value.trim();
+  const item=document.getElementById('rItem').value.trim();
+  const qty=parseInt(document.getElementById('rQty').value)||0;
+  const pri=document.getElementById('rPri').value;
+  if(!shelter||!item||qty<1){toast('Please fill all required fields.',false);return;}
+  // INSERT INTO requests (shelter_name, item_required, quantity, priority, request_date, status) VALUES (...)
+  await api('requests','add',{shelterName:shelter,itemRequired:item,quantity:qty,priority:pri,date:today()});
+  ['rShelter','rItem','rQty'].forEach(id=>document.getElementById(id).value='');
+  togglePanel('panelReq');toast('✅ Request submitted!');await renderRequests();
+}
+async function approveRequest(id){await api('requests','approve',{id});toast('Request approved!');await renderRequests();}
+async function rejectRequest(id){await api('requests','reject',{id});toast('Request rejected.');await renderRequests();}
+async function deleteRequest(id){if(!confirm('Delete this request?'))return;await api('requests','delete',{id});toast('Request deleted.');await renderRequests();}
+function editRequest(id){
+  const r=requests.find(x=>x.id===id);if(!r)return;
+  openModal('✏️ Edit Request',`
+    <div class="form-row fr-2" style="margin-bottom:12px">
+      <div class="fld"><label>Shelter Name</label><input id="er_shelter" value="${r.shelterName}"/></div>
+      <div class="fld"><label>Item Required</label><input id="er_item" value="${r.itemRequired}"/></div>
+    </div>
+    <div class="form-row fr-3">
+      <div class="fld"><label>Quantity</label><input id="er_qty" type="number" value="${r.quantity}"/></div>
+      <div class="fld"><label>Priority</label><select id="er_pri">${['Critical','High','Medium','Low'].map(p=>`<option${p===r.priority?' selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="fld"><label>Status</label><select id="er_status">${['Pending','Approved','Rejected'].map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}</select></div>
+    </div>`,
+  async ()=>{
+    const payload={id,
+      shelterName:document.getElementById('er_shelter').value.trim()||r.shelterName,
+      itemRequired:document.getElementById('er_item').value.trim()||r.itemRequired,
+      quantity:parseInt(document.getElementById('er_qty').value)||r.quantity,
+      priority:document.getElementById('er_pri').value,
+      status:document.getElementById('er_status').value,
+    };
+    await api('requests','update',payload); // UPDATE requests SET ... WHERE id=?
+    closeModal();toast('Request updated.');await renderRequests();
+  });
+}
+async function renderRequests(){
+  requests = await api('requests','list'); // SELECT * FROM requests ORDER BY id
+  const canNew=isAdmin()||currentUser.role==='shelter';
+  const admin=isAdmin();
+  document.getElementById('reqActions').innerHTML=canNew?`<button class="btn btn-ghost" onclick="togglePanel('panelReq')">+ New Request</button>`:'';
+  const pen=requests.filter(r=>r.status==='Pending').length,app=requests.filter(r=>r.status==='Approved').length,rej=requests.filter(r=>r.status==='Rejected').length;
+  document.getElementById('reqStats').innerHTML=
+    miniStat(requests.length,'Total','var(--text)')+miniStat(pen,'Pending','var(--amber)')+
+    miniStat(app,'Approved','var(--accent)')+miniStat(rej,'Rejected','var(--red)');
+  document.getElementById('reqTable').innerHTML=requests.length?`
+    <table><thead><tr><th>ID</th><th>Shelter</th><th>Item</th><th>Qty</th><th>Priority</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${requests.slice().reverse().map(r=>`<tr>
+      <td class="td-mono">${r.id}</td><td class="td-strong">${r.shelterName}</td>
+      <td>${r.itemRequired}</td><td><b>${r.quantity}</b></td>
+      <td>${prioBadge(r.priority)}</td><td>${r.date}</td><td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap">
+        ${admin&&r.status==='Pending'?`<button class="btn btn-sm" style="background:var(--accentBg);color:var(--accent);border:1px solid rgba(61,219,166,.2);font-size:11px" onclick="approveRequest('${r.id}')">✓</button> <button class="btn btn-sm btn-danger" style="font-size:11px" onclick="rejectRequest('${r.id}')">✕</button> `:''}
+        ${admin?`<button class="btn btn-sm btn-blue btn-icon" onclick="editRequest('${r.id}')">✎</button> <button class="btn btn-sm btn-danger btn-icon" onclick="deleteRequest('${r.id}')">🗑</button>`:''}
+      </td>
+    </tr>`).join('')}</tbody></table>`
+    :emptyState('No requests yet','Shelters submit aid requests here.');
+}
+
+// ═══════════════════════════════════════════════
+//  DISTRIBUTION
+// ═══════════════════════════════════════════════
+async function submitDistribution(){
+  const recv=document.getElementById('distRecv').value.trim();
+  const item=document.getElementById('distItem').value.trim();
+  const qty=parseInt(document.getElementById('distQty').value)||0;
+  const cat=document.getElementById('distCat').value;
+  const vol=document.getElementById('distVol').value.trim();
+  const date=document.getElementById('distDate').value||today();
+  if(!recv||!item||qty<1||!vol){toast('All fields are required.',false);return;}
+  // INSERT INTO distribution (receiver_name, item_name, category, quantity, volunteer_name, dist_date, status) VALUES (...)
+  await api('distribution','add',{receiverName:recv,itemName:item,category:cat,quantity:qty,volunteerName:vol,date});
+  ['distRecv','distItem','distQty','distVol'].forEach(id=>document.getElementById(id).value='');
+  togglePanel('panelDist');toast('✅ Distribution record added!');await renderDist();
+}
+async function updateDistStatus(id,val){
+  // api.php runs this as a TRANSACTION when val==='Delivered':
+  //   UPDATE distribution SET status='Delivered' WHERE id=?
+  //   UPDATE inventory SET quantity = quantity - ? WHERE item_name=? AND category=?
+  await api('distribution','updateStatus',{id,status:val});
+  await renderDist();
+}
+function editDist(id){
+  const d=dist.find(x=>x.id===id);if(!d)return;
+  openModal('✏️ Edit Distribution Record',`
+    <div class="form-row fr-2" style="margin-bottom:12px">
+      <div class="fld"><label>Receiver Name</label><input id="dd_recv" value="${d.receiverName}"/></div>
+      <div class="fld"><label>Volunteer Name</label><input id="dd_vol" value="${d.volunteerName}"/></div>
+    </div>
+    <div class="form-row fr-3">
+      <div class="fld"><label>Item Name</label><input id="dd_item" value="${d.itemName}"/></div>
+      <div class="fld"><label>Quantity</label><input id="dd_qty" type="number" value="${d.quantity}"/></div>
+      <div class="fld"><label>Category</label><select id="dd_cat">${['Food','Medicine','Clothes','Relief'].map(c=>`<option${c===d.category?' selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row fr-2" style="margin-top:12px">
+      <div class="fld"><label>Status</label><select id="dd_status">${['Pending','In Transit','Delivered'].map(s=>`<option${s===d.status?' selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="fld"><label>Date</label><input id="dd_date" type="date" value="${d.date}"/></div>
+    </div>`,
+  async ()=>{
+    const payload={id,
+      receiverName:document.getElementById('dd_recv').value.trim()||d.receiverName,
+      volunteerName:document.getElementById('dd_vol').value.trim()||d.volunteerName,
+      itemName:document.getElementById('dd_item').value.trim()||d.itemName,
+      quantity:parseInt(document.getElementById('dd_qty').value)||d.quantity,
+      category:document.getElementById('dd_cat').value,
+      status:document.getElementById('dd_status').value,
+      date:document.getElementById('dd_date').value||d.date,
+    };
+    await api('distribution','update',payload); // UPDATE distribution SET ... WHERE id=?
+    closeModal();toast('Distribution updated.');await renderDist();
+  });
+}
+async function deleteDist(id){if(!confirm('Delete this distribution record?'))return;await api('distribution','delete',{id});toast('Record deleted.');await renderDist();}
+async function renderDist(){
+  dist = await api('distribution','list'); // SELECT * FROM distribution ORDER BY id
+  const canEdit=isAdmin()||currentUser.role==='volunteer';
+  const admin=isAdmin();
+  document.getElementById('distActions').innerHTML=canEdit?`<button class="btn btn-ghost" onclick="togglePanel('panelDist')">+ Add Record</button>`:'';
+  const del=dist.filter(d=>d.status==='Delivered').length,tr=dist.filter(d=>d.status==='In Transit').length,pen=dist.filter(d=>d.status==='Pending').length;
+  document.getElementById('distStats').innerHTML=
+    miniStat(dist.length,'Total','var(--text)')+miniStat(del,'Delivered','var(--accent)')+
+    miniStat(tr,'In Transit','var(--blue)')+miniStat(pen,'Pending','var(--amber)');
+  document.getElementById('distTable').innerHTML=dist.length?`
+    <table><thead><tr><th>ID</th><th>Receiver</th><th>Item</th><th>Category</th><th>Qty</th><th>Date</th><th>Volunteer</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${dist.slice().reverse().map(d=>`<tr>
+      <td class="td-mono">${d.id}</td><td class="td-strong">${d.receiverName}</td>
+      <td>${d.itemName}</td><td>${catBadge(d.category)}</td>
+      <td><b>${d.quantity}</b></td>
+      <td>${d.date}</td><td>${d.volunteerName}</td><td>${statusBadge(d.status)}</td>
+      <td style="white-space:nowrap">
+        ${canEdit&&d.status!=='Delivered'?`<select style="background:var(--surfaceB);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:3px 7px;font-size:11px;cursor:pointer" onchange="updateDistStatus('${d.id}',this.value)"><option${d.status==='Pending'?' selected':''}>Pending</option><option${d.status==='In Transit'?' selected':''}>In Transit</option><option>Delivered</option></select> `:''}
+        ${admin?`<button class="btn btn-sm btn-blue btn-icon" onclick="editDist('${d.id}')">✎</button> <button class="btn btn-sm btn-danger btn-icon" onclick="deleteDist('${d.id}')">🗑</button>`:''}
+      </td>
+    </tr>`).join('')}</tbody></table>`
+    :emptyState('No distribution records','Add records after requests are approved.');
+}
+
+// ═══════════════════════════════════════════════
+//  REPORTS
+// ═══════════════════════════════════════════════
+async function renderReports(){
+  donations = await api('donations','list');
+  inventory = await api('inventory','list');
+  requests  = await api('requests','list');
+  dist      = await api('distribution','list');
+
+  const totalQtyDonated=donations.filter(d=>d.status==='Approved').reduce((s,d)=>s+d.quantity,0);
+  const totalDelivered=dist.filter(d=>d.status==='Delivered').reduce((s,d)=>s+d.quantity,0);
+  const approvalRate=donations.length?Math.round(donations.filter(d=>d.status==='Approved').length/donations.length*100):0;
+  const totalStock=inventory.reduce((s,i)=>s+i.quantity,0);
+  document.getElementById('repKpi').innerHTML=[
+    {label:'Total Qty Donated',val:totalQtyDonated,icon:'📦',cls:'kpi-accent',c:'var(--accent)'},
+    {label:'Items Delivered',val:totalDelivered,icon:'🚚',cls:'kpi-blue',c:'var(--blue)'},
+    {label:'Approval Rate',val:approvalRate+'%',icon:'✅',cls:'kpi-amber',c:'var(--amber)'},
+    {label:'Total Stock Units',val:totalStock,icon:'🏪',cls:'kpi-purple',c:'var(--purple)'},
+  ].map(k=>`<div class="kpi-card ${k.cls}"><span class="kpi-icon">${k.icon}</span><div class="kpi-val" style="color:${k.c}">${k.val}</div><div class="kpi-label">${k.label}</div></div>`).join('');
+
+  // Donut
+  const cats=['Food','Medicine','Clothes','Relief'];
+  const catHex=['#3ddba6','#5b8fff','#f59e0b','#a78bfa'];
+  const catCounts=cats.map(c=>donations.filter(d=>d.category===c).reduce((s,d)=>s+d.quantity,0));
+  const totalCatQty=catCounts.reduce((a,b)=>a+b,0);
+  const totalDonut=totalCatQty||1;
+  let cumAngle=0, CX=60,CY=60,R=46,RI=28, paths='';
+  catCounts.forEach((count,i)=>{
+    if(count===0)return;
+    const angle=(count/totalDonut)*Math.PI*2;
+    const x1=CX+R*Math.sin(cumAngle),y1=CY-R*Math.cos(cumAngle);
+    const x2=CX+R*Math.sin(cumAngle+angle),y2=CY-R*Math.cos(cumAngle+angle);
+    const xi1=CX+RI*Math.sin(cumAngle),yi1=CY-RI*Math.cos(cumAngle);
+    const xi2=CX+RI*Math.sin(cumAngle+angle),yi2=CY-RI*Math.cos(cumAngle+angle);
+    const large=angle>Math.PI?1:0;
+    paths+=`<path d="M${xi1},${yi1} L${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} L${xi2},${yi2} A${RI},${RI} 0 ${large},0 ${xi1},${yi1}" fill="${catHex[i]}" opacity="0.9"/>`;
+    cumAngle+=angle;
+  });
+  let donutCenter;
+  if(totalCatQty===0){
+    donutCenter=`<text x="${CX}" y="${CY}" text-anchor="middle" dominant-baseline="middle" fill="var(--muted)" font-size="9">No data</text>`;
+  } else if(totalCatQty===1){
+    donutCenter=`<text x="${CX}" y="${CY}" text-anchor="middle" dominant-baseline="middle" fill="var(--text)" font-size="14" font-weight="800" font-family="var(--mono)">1</text>`;
+  } else {
+    donutCenter=`<text x="${CX}" y="${CY-5}" text-anchor="middle" dominant-baseline="middle" fill="var(--text)" font-size="13" font-weight="800" font-family="var(--mono)">${totalCatQty}</text><text x="${CX}" y="${CY+9}" text-anchor="middle" fill="var(--muted)" font-size="9">units</text>`;
+  }
+  document.getElementById('donutSvg').innerHTML=paths+donutCenter;
+  document.getElementById('donutLegend').innerHTML=cats.map((c,i)=>`
+    <div class="dl-item"><div class="dl-dot" style="background:${catHex[i]}"></div>
+    <span class="dl-label">${c}</span><span class="dl-val">${catCounts[i]}</span></div>`).join('');
+
+  // Bars etc (unchanged logic, same as before)
+  const don_total=donations.length||1;
+  document.getElementById('donStatusBars').innerHTML=
+    progBar('Approved',donations.filter(d=>d.status==='Approved').length,don_total,'#3ddba6')+
+    progBar('Pending',donations.filter(d=>d.status==='Pending').length,don_total,'#f59e0b')+
+    progBar('Rejected',donations.filter(d=>d.status==='Rejected').length,don_total,'#f87171');
+
+  const inv_total=inventory.length||1;
+  document.getElementById('invHealthBars').innerHTML=
+    progBar('OK / Healthy',inventory.filter(i=>i.status==='OK').length,inv_total,'#3ddba6')+
+    progBar('Low Stock',inventory.filter(i=>i.status==='Low').length,inv_total,'#f59e0b')+
+    progBar('Critical',inventory.filter(i=>i.status==='Critical').length,inv_total,'#f87171');
+
+  const dist_total=dist.length||1;
+  document.getElementById('distPipeline').innerHTML=
+    progBar('Delivered',dist.filter(d=>d.status==='Delivered').length,dist_total,'#3ddba6')+
+    progBar('In Transit',dist.filter(d=>d.status==='In Transit').length,dist_total,'#5b8fff')+
+    progBar('Pending',dist.filter(d=>d.status==='Pending').length,dist_total,'#f59e0b');
+
+  const itemMap={};
+  donations.filter(d=>d.status==='Approved').forEach(d=>{itemMap[d.itemName]=(itemMap[d.itemName]||0)+d.quantity;});
+  const topItems=Object.entries(itemMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxItem=topItems[0]?topItems[0][1]:1;
+  document.getElementById('topItemsChart').innerHTML=topItems.length?
+    topItems.map(([name,qty])=>`
+      <div class="prog-item">
+        <div class="prog-label-row"><span class="prog-label">${name}</span><span class="prog-val">${qty}</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${(qty/maxItem*100).toFixed(1)}%;background:var(--accent)"></div></div>
+      </div>`).join('')
+    :`<div style="color:var(--muted);font-size:12.5px;padding:16px 0">No approved donations yet.</div>`;
+
+  const prios=['Critical','High','Medium','Low'];
+  const prioColors=['#f87171','#f59e0b','#5b8fff','#3ddba6'];
+  const prioCounts=prios.map(p=>requests.filter(r=>r.priority===p).length);
+  document.getElementById('reqPriorityChart').innerHTML=prios.map((p,i)=>
+    progBar(p,prioCounts[i],prioCounts.reduce((a,b)=>a+b,0)||1,prioColors[i])).join('');
+
+  const activeVols=new Set(dist.map(d=>d.volunteerName)).size;
+  const avgDonQty=donations.length?Math.round(donations.reduce((s,d)=>s+d.quantity,0)/donations.length):0;
+  document.getElementById('summaryStats').innerHTML=`
+    <div class="prog-item" style="margin-bottom:14px"><div class="prog-label-row"><span class="prog-label">Registered Donors</span><span class="prog-val">${new Set(donations.map(d=>d.donorName)).size}</span></div></div>
+    <div class="prog-item" style="margin-bottom:14px"><div class="prog-label-row"><span class="prog-label">Active Volunteers</span><span class="prog-val">${activeVols}</span></div></div>
+    <div class="prog-item" style="margin-bottom:14px"><div class="prog-label-row"><span class="prog-label">Shelters Served</span><span class="prog-val">${new Set(requests.map(r=>r.shelterName)).size}</span></div></div>
+    <div class="prog-item" style="margin-bottom:14px"><div class="prog-label-row"><span class="prog-label">Avg. Donation Qty</span><span class="prog-val">${avgDonQty} units</span></div></div>
+    <div class="prog-item"><div class="prog-label-row"><span class="prog-label">Pending Aid Requests</span><span class="prog-val" style="color:var(--amber)">${requests.filter(r=>r.status==='Pending').length}</span></div></div>`;
+}
+
+function progBar(label,val,total,color){
+  const pct=Math.max(0,Math.min(100,(val/total*100))).toFixed(1);
+  return `<div class="prog-item">
+    <div class="prog-label-row"><span class="prog-label">${label}</span><span class="prog-val">${val} <span style="font-weight:400;color:var(--dim)">(${pct}%)</span></span></div>
+    <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  USER MANAGEMENT
+// ═══════════════════════════════════════════════
+async function deleteUser(id){
+  if(id===currentUser.id){toast('You cannot delete your own account.',false);return;}
+  if(!confirm('Delete this user account?'))return;
+  await api('users','delete',{id}); // DELETE FROM users WHERE id=?
+  toast('User deleted.');await renderUsers();
+}
+function editUserRole(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  openModal('✏️ Change User Role',`
+    <div style="margin-bottom:16px">
+      <div style="font-weight:600;margin-bottom:4px">${u.name}</div>
+      <div style="font-size:12px;color:var(--muted)">${u.email}</div>
+    </div>
+    <div class="fld"><label>Role</label><select id="eu_role">${['admin','donor','volunteer','shelter'].map(r=>`<option${r===u.role?' selected':''}>${r}</option>`).join('')}</select></div>`,
+  async ()=>{
+    const role=document.getElementById('eu_role').value;
+    await api('users','updateRole',{id,role}); // UPDATE users SET role=? WHERE id=?
+    closeModal();toast('Role updated.');await renderUsers();
+  });
+}
+async function renderUsers(){
+  users = await api('users','list'); // SELECT id,name,email,role,avatar_data,created_at FROM users
+  document.getElementById('usersTable').innerHTML=users.length?`
+    <div class="tbl-header">
+      <div class="tbl-header-left"><h2>Registered Users</h2><span class="badge bg-blue">${users.length} account${users.length!==1?'s':''}</span></div>
+    </div>
+    <table><thead><tr><th>User</th><th>Email</th><th>Role</th><th>Registered</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>{
+      const avatarHtml = u.avatarData ? `<img src="${u.avatarData}" style="width:100%;height:100%;object-fit:cover"/>` : u.name.charAt(0).toUpperCase();
+      const bgColor = u.avatarData ? 'transparent' : roleBgColor(u.role);
+      const textColor = u.avatarData ? 'transparent' : roleTextColor(u.role);
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:9px">
+          <div class="u-avatar" style="background:${bgColor};color:${textColor}">${avatarHtml}</div>
+          <span class="td-strong">${u.name}${u.id===currentUser.id?' <span style="font-size:10px;color:var(--dim);font-weight:400">(you)</span>':''}</span>
+        </div></td>
+        <td style="font-size:12px">${u.email}</td>
+        <td><span class="role-pill rp-${u.role}">${u.role}</span></td>
+        <td style="font-size:11.5px;color:var(--dim)">${u.createdAt?new Date(u.createdAt).toLocaleDateString('en-GB'):'—'}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm btn-blue btn-icon" onclick="editUserRole('${u.id}')">✎ Role</button>
+          ${u.id!==currentUser.id?` <button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser('${u.id}')">🗑</button>`:''}
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`
+    :emptyState('No users registered','Users appear here after they sign up.');
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+document.getElementById('distDate').value=today();
+document.getElementById('dDate').value=today();
+</script>
+</body>
+</html>
