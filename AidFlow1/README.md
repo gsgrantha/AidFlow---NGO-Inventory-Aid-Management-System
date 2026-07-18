@@ -1,4 +1,4 @@
-# AidFlow — DBMS Project (Split File Structure)
+# AidFlow — DBMS Project
 
 Same app, same design, same database logic as before — just organized into
 smaller, role-specific files instead of one big `api.php`. Nothing about
@@ -44,7 +44,7 @@ fetch('api/donations.php', { method:'POST', body: JSON.stringify({action:'add', 
 ```
 instead of one shared `api.php` with a `resource` field.
 
-## Setup (same as before)
+## Setup
 
 1. Put the `AidFlow` folder in `htdocs`:
    - Windows: `C:\xampp\htdocs\AidFlow`
